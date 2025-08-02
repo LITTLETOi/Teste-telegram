@@ -19,9 +19,9 @@ nest_asyncio.apply()
 BOT_TOKEN = "8191885274:AAFj8sZh4lClGedMRP80MDooMtIPE6rPo28" #your bot token
 API_URL_TEMPLATE = "https://likes.ffgarena.cloud/api/v2/likes?uid=${uid}&amount_of_likes=100&auth=vortex"#your like api 
 
-ADMIN_IDS = [7307638800] #your telegram id
-ALLOWED_GROUPS = [-1002621833445] #group id
-vip_users = [6761595092] #vip id
+ADMIN_IDS = [8183673253] #your telegram id
+ALLOWED_GROUPS = [-4781844651] #group id
+vip_users = [8183673253] #vip id
 DEFAULT_DAILY_LIMIT = 30 #limt your group 
 
 # ========= STATE =========
