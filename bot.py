@@ -19,10 +19,10 @@ nest_asyncio.apply()
 BOT_TOKEN = "8191885274:AAFj8sZh4lClGedMRP80MDooMtIPE6rPo28" #your bot token
 API_URL_TEMPLATE = "https://likes.ffgarena.cloud/api/v2/likes?uid=${uid}&amount_of_likes=100&auth=vortex"#your like api 
 
-ADMIN_IDS = [8183673253] #your telegram id
-ALLOWED_GROUPS = [-4781844651] #group id
-vip_users = [8183673253] #vip id
-DEFAULT_DAILY_LIMIT = 50 #limt your group 
+ADMIN_IDS = [7307638800] #your telegram id
+ALLOWED_GROUPS = [-1002621833445] #group id
+vip_users = [6761595092] #vip id
+DEFAULT_DAILY_LIMIT = 30 #limt your group 
 
 # ========= STATE =========
 allowed_groups = set(ALLOWED_GROUPS)
@@ -71,7 +71,7 @@ def check_command_enabled(func):
 # ========= CORE COMMANDS =========
 @check_command_enabled
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("👋 Bem vindo (a)! Use /like <uid> Para enviar likes.")
+    await update.message.reply_text("👋 Welcome! Use /like ind <uid> to get Free Fire likes.")
 
 @check_command_enabled
 async def bot(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -80,18 +80,31 @@ async def bot(update: Update, context: ContextTypes.DEFAULT_TYPE):
 @check_command_enabled
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     help_text = """
-📘 MENU DE AJUDA
+📘 HELP MENU
 
-🔹 Comandos Principais: /like <uid> - Enviar curtidas /check - Seu uso hoje /groupstatus - Estatísticas de uso do grupo /remain - Contagem de usuários hoje
+🔹 Core Commands:
+/like <region> <uid> - Send likes
+/check - Your usage today
+/groupstatus - Group usage stats
+/remain - Today's user count
 
-🔹 Gerenciamento de VIP: /setvip <user_id> - Adicionar VIP /removevip <user_id> - Remover VIP /viplist - Mostrar usuários VIP /setpromotion <texto> - Definir mensagem promocional
+🔹 VIP Management:
+/setvip <user_id> - Add VIP
+/removevip <user_id> - Remove VIP
+/viplist - Show VIP users
+/setpromotion <text> - Set promo msg
 
-🔹 Gerenciamento de Usuários: /userinfo <user_id> - Obter detalhes do usuário /stats - Estatísticas de uso /feedback <mensagem> - Enviar feedback
+🔹 User Management:
+/userinfo <user_id> - Get user details
+/stats - Usage statistics
+/feedback <msg> - Send feedback
 
-🔹 Sistema: /status - Status do bot /on - Ativar comandos /off - Desativar comandos
+🔹 System:
+/status - Bot status
+/on - Enable commands
+/off - Disable commands
 
-👑 Dono: @VorteXModi
-
+👑 Owner: @Nilay_vii
 """
     await update.message.reply_text(help_text)
 
@@ -361,7 +374,7 @@ async def feedback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         except:
             continue
 
-    await update.message.reply_text("✅ Obrigado pelo feedback!")
+    await update.message.reply_text("✅ Thank you for your feedback!")
 
 @check_command_enabled
 async def check(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -376,9 +389,9 @@ async def check(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     await update.message.reply_text(
-        f"👤 Querido {update.effective_user.first_name}, Seus status\n\n"
-        f"🎯 REQUISIÇÃO GRATIS: {status}\n"
-        f"👑 Dono: @VorteXModi"
+        f"👤 DEAR {update.effective_user.first_name}, YOUR STATUS\n\n"
+        f"🎯 FREE REQUEST: {status}\n"
+        f"👑 OWNER: @nilay_vii"
     )
 
 @check_command_enabled
@@ -405,16 +418,16 @@ async def like(update: Update, context: ContextTypes.DEFAULT_TYPE):
     limit = get_limit(group_id)
 
     if used >= limit:
-        await update.message.reply_text("❌ Limite diário do grupo foi atingido")
+        await update.message.reply_text("❌ Group daily like limit reached!")
         return
 
     args = context.args
     if len(args) != 2:
-        await update.message.reply_text("⚠️ Comando: /like <uid>")
+        await update.message.reply_text("⚠️ Usage: /like <region> <uid>")
         return
 
     # Send processing message
-    processing_msg = await update.message.reply_text("⏳ Processando sua requisição")
+    processing_msg = await update.message.reply_text("⏳ Processing your request...")
 
     region, uid = args
     user_id = update.effective_user.id
@@ -424,7 +437,7 @@ async def like(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not is_vip:
         user_info = user_data.get(user_id, {})
         if user_info.get("date") == today and user_info.get("count", 0) >= 1:
-            await processing_msg.edit_text("⛔ Você atingiu o limite diário.")
+            await processing_msg.edit_text("⛔ You have used your free like today.")
             return
         user_data[user_id] = {"date": today, "count": user_info.get("count", 0)}
 
@@ -435,16 +448,16 @@ async def like(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logger.info(f"API response: {data}")
     except Exception as e:
         logger.error(f"API error: {e}")
-        await processing_msg.edit_text("🚨 Falha ao enviar.")
+        await processing_msg.edit_text("🚨 API Error! Try again later.")
         return
 
     if data.get("LikesGivenByAPI") == 0:
-        await processing_msg.edit_text("⚠️ Usuário já atingiu o limite diário.")
+        await processing_msg.edit_text("⚠️ UID has already reached max likes today.")
         return
 
-    required_keys = ["nickname", "likes_antes", "likes_depois", "sent"]
+    required_keys = ["PlayerNickname", "UID", "LikesbeforeCommand", "LikesafterCommand", "LikesGivenByAPI"]
     if not all(key in data for key in required_keys):
-        await processing_msg.edit_text("⚠️ Não foi possível verificar seu id")
+        await processing_msg.edit_text("⚠️ Invalid UID or unable to fetch details.🙁 Please check UID or try again later.")
         logger.warning(f"Incomplete API response for UID {uid}: {data}")
         return
 
@@ -454,13 +467,14 @@ async def like(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Prepare the response text
     text = (
-        f"✅ SUCESSO!\n\n"
-        f"👤 Nick: {data['nickname']}\n"
-        f"📊 Nivel: {data['level']}\n"
-        f"🌍 Região: {data['region']}\n"
-        f"🤡 Antes: {data['likes_antes']}\n"
-        f"🗿 Depois: {data['likes_depois']}\n"
-        f"🎉 Enviados: {data['sent']}"
+        f"✅ Like Sent Successfully!\n\n"
+        f"👤 Name: {data['PlayerNickname']}\n"
+        f"🆔 UID: {data['UID']}\n"
+        f"📊 Level: {data['Level']}\n"
+        f"🌍 Region: {data['Region']}\n"
+        f"🤡 Before: {data['LikesbeforeCommand']}\n"
+        f"🗿 After: {data['LikesafterCommand']}\n"
+        f"🎉 Given: {data['LikesGivenByAPI']}"
     )
     if promotion_message:
         text += f"\n\n📢 {promotion_message}"
@@ -494,10 +508,10 @@ async def groupstatus(update: Update, context: ContextTypes.DEFAULT_TYPE):
     count = group_usage.get(group_id, 0)
 
     await update.message.reply_text(
-        f"📊 Group Status\n\n"
-        f"🆔 Gropo ID: {group_id}\n"
-        f"✅ Likes usados hoje: {count}/{get_limit(group_id)}\n"
-        f"⏰ Reseta: 4:30 Da manhã"
+        f"📊 Group Usage Status\n\n"
+        f"🆔 Group ID: {group_id}\n"
+        f"✅ Likes used today: {count}/{get_limit(group_id)}\n"
+        f"⏰ Reset: 4:30 AM daily"
     )
 
 @check_command_enabled
@@ -506,8 +520,8 @@ async def remain(update: Update, context: ContextTypes.DEFAULT_TYPE):
     used_users = [uid for uid, data in user_data.items() if data.get("date") == today]
 
     await update.message.reply_text(
-        f"📊 Enviados hoje:\n\n"
-        f"✅ Usuários que usaram likes: {len(used_users)}\n"
+        f"📊 Today's Usage\n\n"
+        f"✅ Users used likes: {len(used_users)}\n"
         f"📅 Date: {today}"
     )
 
@@ -571,6 +585,7 @@ async def setremain(update: Update, context: ContextTypes.DEFAULT_TYPE):
     group_id = update.effective_chat.id
     group_limits[group_id] = int(context.args[0])
     await update.message.reply_text(f"✅ Daily group limit set to {context.args[0]} likes.")
+
 @check_command_enabled
 async def autogroupreset(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in ADMIN_IDS:
@@ -582,7 +597,7 @@ async def autogroupreset(update: Update, context: ContextTypes.DEFAULT_TYPE):
 @check_command_enabled
 async def setvip(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in ADMIN_IDS:
-            await update.message.reply_text("⛔ Você não tem permissão para utilizar esse comando.")
+        await update.message.reply_text("⛔ You are not authorized to use this command.")
         return
 
     replied_user = update.message.reply_to_message.from_user if update.message.reply_to_message else None
@@ -636,7 +651,7 @@ async def viplist(update: Update, context: ContextTypes.DEFAULT_TYPE):
 @check_command_enabled
 async def setadmin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in ADMIN_IDS:
-        await update.message.reply_text("⛔ Você não tem permissão para utilizar esse comando..")
+        await update.message.reply_text("⛔ You are not authorized.")
         return
 
     replied_user = update.message.reply_to_message.from_user if update.message.reply_to_message else None
@@ -690,17 +705,17 @@ async def adminlist(update: Update, context: ContextTypes.DEFAULT_TYPE):
 @check_command_enabled
 async def off(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in ADMIN_IDS:
-        await update.message.reply_text("⛔ Você não tem permissão para utilizar esse comando.")
+        await update.message.reply_text("⛔ You are not authorized to use this command.")
         return
         
     global command_enabled
     command_enabled = False
-    await update.message.reply_text("⛔ Comandos desativados.")
+    await update.message.reply_text("⛔ All commands disabled.")
 
 @check_command_enabled
 async def on(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id not in ADMIN_IDS:
-        await update.message.reply_text("⛔ Você não tem permissão para utilizar esse comando.")
+        await update.message.reply_text("⛔ You are not authorized to use this command.")
         return
         
     global command_enabled
@@ -717,7 +732,7 @@ async def reset_group_usage_task():
         wait_seconds = (reset_time - now).total_seconds()
         await asyncio.sleep(wait_seconds)
         group_usage.clear()
-        print("✅ Limite para grupos reseta as 4:30 da manhã")
+        print("✅ Group like limits reset at 4:30 AM.")
 
 # ========= MAIN =========
 def setup():
